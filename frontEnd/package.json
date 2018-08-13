@@ -1,0 +1,47 @@
+{
+  "name": "todoproject",
+  "version": "0.0.1",
+  "description": "Todo List App",
+  "main": "App.js",
+  "repository": "",
+  "scripts": {
+    "start": "webpack-dev-server --mode development --open",
+    "dev": "webpack --mode development  --open",
+    "build": "webpack --mode production --module-bind js=babel-loader"
+  },
+  "author": "rebecca.gray@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "@material-ui/core": "^1.4.3",
+    "@material-ui/icons": "^2.0.1",
+    "@material/list": "^0.38.0",
+    "@material/top-app-bar": "^0.38.0",
+    "axios": "^0.18.0",
+    "css-loader": "^1.0.0",
+    "material-ui": "^0.20.2",
+    "material-ui-icons": "^1.0.0-beta.36",
+    "moment": "^2.22.2",
+    "react-flexbox-grid": "^2.1.2",
+    "typeface-roboto": "0.0.54",
+    "underscore": "^1.9.1",
+    "whatwg-fetch": "^2.0.4"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "eslint": "^4.19.0",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.0.6",
+    "mocha": "^5.2.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "style-loader": "^0.22.1",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.12",
+    "webpack-dev-server": "^3.1.5"
+  }
+}

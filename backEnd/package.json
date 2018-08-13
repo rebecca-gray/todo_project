@@ -1,0 +1,20 @@
+{
+  "name": "todoproject",
+  "version": "0.0.1",
+  "description": "Todo List Server",
+  "main": "server.js",
+  "repository": "",
+  "scripts": {
+    "start": "node ./server/server.js"
+  },
+  "author": "rebecca.gray@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "moment": "^2.22.2",
+    "sqlite3": "^4.0.2",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {}
+}

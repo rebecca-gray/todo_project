@@ -104,6 +104,7 @@ class TodoApp extends React.Component {
   }
 
   updateTask(id, url = "todo", body = "") {
+    console.log("updateTask", body)
     if (!id || !body) {
       console.log("ERR no id provided to getDetails")
       return;

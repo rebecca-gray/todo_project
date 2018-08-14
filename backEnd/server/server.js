@@ -3,7 +3,6 @@ const sqlite3 = require('sqlite3').verbose();
 const restify = require('restify');
 const corsMiddleware = require('restify-cors-middleware')
 const port = process.env.PORT || 5000;
-const moment = require('moment');
 const url = require('url');
 const Todo = require("./todo");
 const app = restify.createServer({
@@ -169,15 +168,18 @@ app.get('/detail', (req, res) => {
 app.put('/todo', (req, res) => {
     console.log("put body", req.body)
 
-    let data = [req.body.isComplete, req.body.title, req.body.body, req.body.deadline];
-    let id = req.body.id;
-    const query = "UPDATE todos SET isComplete=?, title=?, body=?, deadline=? WHERE id=?"
-    db.run(query, data, (err,rows) => {
+    let data = [req.body.isComplete, req.body.title, req.body.body, req.body.deadline, req.body.id];
+    // let id = req.body.id;
+    console.log("data", req.body.isComplete, req.body.title, req.body.body, req.body.deadline, req.body.id)
+    const query = "UPDATE todos SET isComplete=?, title=?, body=?, deadline=? WHERE id= ?"
+    Promise.resolve(db.run(query, data, (err, rows) => {
         if (err) {
             return console.error(err.message);
         }
-        console.log(`Row(s) updated: ${this.changes}`);
-        const query = `SELECT id, isComplete, title, deadline FROM todos ORDER BY deadline`
+        return rows;
+    })).then((rows) => {
+        console.log(`Row(s) updated`, rows);
+        const query = Todo.getAllQuery()
         db.all(query, [], function(err, rows){
             if (err) {
                 console.log("ERR", err)
@@ -185,7 +187,6 @@ app.put('/todo', (req, res) => {
             res.json(rows);
         });
     });
-
 })
 
 /**

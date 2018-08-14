@@ -87,16 +87,17 @@ class TodoList extends React.Component {
     })
   }
 
-  hideDetails(item, diff) {
+  hideDetails(item) {
+    console.log("hideDetails", item)
     const modalOpen = this.state.modalOpen;
     modalOpen[item.id] = false;
     this.setState({
       selectedItem: null,
       modalOpen
     });
-    if (diff) {
+    // if (diff) {
       this.props.handleUpdate(item)
-    }
+    // }
   }
 
   render() {

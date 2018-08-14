@@ -29,24 +29,24 @@ class DetailView extends React.Component {
   handleClose(item) {
     this.setState({ open: false });
     let diff = false;
-    if (item.body !== this.state.itemBody) {
+    if (item.body === null || item.body === this.state.itemBody) {
         item.body = this.state.itemBody;
         diff = true;
     }
-    if (item.title !== this.state.itemTitle) {
+    if (item.title === null || item.title !== this.state.itemTitle) {
         item.title = this.state.itemTitle;
         diff = true;
     }
-    if (item.deadline !== this.state.itemDeadline) {
+    if (item.deadline === null || item.deadline !== this.state.itemDeadline) {
         item.deadline = this.state.itemDeadline;
         diff = true;
     }
-    if (item.isComplete !== this.state.itemIsComplete) {
+    if (item.isComplete === null || item.isComplete !== this.state.itemIsComplete) {
         item.isComplete = this.state.itemIsComplete;
         diff = true;
     }
     console.log("handleClose", item)
-    this.props.onClose(item, diff)
+    this.props.onClose(item, this.state.itemBody)
   };
 
   render() {

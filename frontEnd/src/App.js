@@ -73,7 +73,7 @@ class TodoApp extends React.Component {
     })
   }
 
-  getDetails(url = "todo", body = "", id) {
+  getDetails(url = "detail", body = "", id) {
     if (!id) {
       console.log("ERR no id provided to getDetails")
       return;
@@ -88,7 +88,7 @@ class TodoApp extends React.Component {
       });
   }
 
-  deleteTask(id, url = "todo", body = "") {
+  deleteTask(id, url = "", body = "") {
     if (!id) {
       console.log("ERR no id provided to getDetails")
       return;

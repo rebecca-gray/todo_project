@@ -202,6 +202,7 @@ app.get('/incomplete', (req, res) => {
  */
 app.get('/detail', (req, res) => {
     const id = url.parse(req.url, true).query.id
+    console.log("GET detail",id)
     if (!id) {
         console.log("no id sent", url.parse(req.url, true))
     }
@@ -218,19 +219,32 @@ app.get('/detail', (req, res) => {
 /**
  * update records by id
  */
-app.put('/detail/:id', (req, res) => {
-    // db.run("UPDATE table_name where condition");
+app.put('/todo', (req, res) => {
+    console.log("put body", req.body)
+    let data = [req.body.isComplete, req.body.title, req.body.body, req.body.deadline];
+    let id = req.body.id;
+    db.run("UPDATE todos SET isComplete=?, title=?, body=?, deadline=? WHERE id=?",data, (err,rows) => {
+        if (err) {
+            return console.error(err.message);
+        }
+        console.log(`Row(s) updated: ${this.changes}`);
+        const query = `SELECT id, isComplete, title, deadline FROM todos ORDER BY deadline`
+        db.all(query, [], function(err, rows){
+            if (err) {
+                console.log("ERR", err)
+            }
+            res.json(rows);
+        });
+    });
+
 })
 
 /**
  * create record, no required fields at this point.
  * @returns {id}
  */
-app.post('/', (req, res) => {
-    if (req.method == "OPTIONS") {
-        res.status(200);
-        res.send();
-      }
+app.post('/todo', (req, res) => {
+    console.log("POST todo")
     console.log("2 req", req.method, req.body)
    // const data = req;
     //data.id = null;

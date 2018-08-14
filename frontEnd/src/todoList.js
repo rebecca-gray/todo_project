@@ -8,6 +8,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import Delete from '@material-ui/icons/Delete';
+import Edit from '@material-ui/icons/Edit';
 import moment from "moment"
 import DetailView from "./detailView";
 
@@ -70,7 +71,7 @@ class TodoList extends React.Component {
 
   displayDetails(item) {
     if (this.state.selectedItem) {
-       return this.hideDetails(item)
+      return this.hideDetails(item)
     }
     console.log("displaydetails", item.id)
     this.props.getDetails("detail", "", item.id)
@@ -86,14 +87,16 @@ class TodoList extends React.Component {
     })
   }
 
-  hideDetails(item) {
-    console.log("hideDetails", item)
+  hideDetails(item, diff) {
     const modalOpen = this.state.modalOpen;
     modalOpen[item.id] = false;
     this.setState({
       selectedItem: null,
       modalOpen
     });
+    if (diff) {
+      this.props.handleUpdate(item)
+    }
   }
 
   render() {
@@ -103,10 +106,13 @@ class TodoList extends React.Component {
 
     if (this.props.items.length < 1) {
       return (
-        <ListItem
-          key='empty_element'
-          primaryText='No Tasks Yet'
-        />
+        <List>
+        <ListItem key='empty_element'>
+        <ListItemText>
+           No Tasks Yet
+        </ListItemText>
+        </ListItem>
+        </List>
       )
     }
     return (
@@ -118,14 +124,17 @@ class TodoList extends React.Component {
               key={item.id}
               role={undefined}
               dense
-              button
-              onClick={this.displayDetails.bind(this, item)}
-             className={item.id.toString()}
+              className={item.id.toString()}
             >
+            <IconButton onClick={this.displayDetails.bind(this, item)}>
+              <Edit/>
+            </IconButton>
+
               {selectedItem && (
                 <DetailView
                   open={this.state.modalOpen[item.id]}
                   markComplete={this.markComplete}
+                  onClose={this.hideDetails.bind(this, item)}
                   item={selectedItem}
                 />
               )}

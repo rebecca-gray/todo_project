@@ -1,11 +1,12 @@
-process.env.NODE_ENV = 'test';
-
 const sinon = require("sinon");
 const chai = require("chai");
 const { expect } = chai;
-const server = require("../src/server");
+// const server = require("../src/server");
 const request = require("request")
 const moment = require("moment")
+// const sinonChai = require("sinon-chai");
+
+// chai.use(sinonChai);
 
 const base = 'http://localhost:5000';
 const today = moment().format('YYYY-MM-DD');

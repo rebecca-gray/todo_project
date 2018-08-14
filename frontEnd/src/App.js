@@ -4,7 +4,14 @@ import Input from "./input";
 import MenuAppBar from "./MenuAppBar"
 import 'whatwg-fetch'
 import TodoList from "./todoList"
-import _ from "underscore"
+
+const divStyle = {
+  padding: '100px',
+  margin: '20px',
+  border: '5px solid gray',
+  borderRadius: '10px',
+  backgroundColor: '#dee2e8',
+};
 
 class TodoApp extends React.Component {
   constructor(props) {
@@ -15,10 +22,38 @@ class TodoApp extends React.Component {
       isLoaded: false
     };
     this.BASE_URL = `http://localhost:5000`;
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.createTask = this.createTask.bind(this);
+    this.deleteTask = this.deleteTask.bind(this);
+    this.updateTask = this.updateTask.bind(this);
+    this.handleCreate = this.handleCreate.bind(this);
+    this.handleUpdate = this.handleUpdate.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
     this.getTodos = this.getTodos.bind(this)
     this.getDetails = this.getDetails.bind(this)
+  }
+
+  fetch(url, body, method) {
+    console.log("FETCH", url)
+    return fetch(`${this.BASE_URL}/${url}`, {
+      body: body ? JSON.stringify(body) : undefined,
+      headers: {
+        "content-type": "application/json",
+      },
+      method,
+      mode: "cors",
+    }).then(
+      (resp) => {
+        if (resp.status === 404) {
+          return Promise.reject(new RouterError());
+      }
+      if (resp.status >= 400) {
+          return resp.json()
+              .catch(() => Promise.reject(new ServerError()))
+              .then(json => Promise.reject(new ServerError(json)));
+      }
+      console.log("RESP.status", resp.status)
+      return resp.json();
+    })
   }
 
   getTodos(url = "all", body = "") {
@@ -53,12 +88,12 @@ class TodoApp extends React.Component {
       });
   }
 
-  deleteRecord(url = "todo", body = "", id) {
+  deleteTask(id, url = "todo", body = "") {
     if (!id) {
       console.log("ERR no id provided to getDetails")
       return;
     }
-    return this.fetch(`${url}?id=${item.id}`, body, "DELETE")
+    return this.fetch(`${url}?id=${id}`, body, "DELETE")
     .then((res) => {
       console.log("res", res)
       return id
@@ -68,55 +103,49 @@ class TodoApp extends React.Component {
     });
   }
 
+  updateTask(id, url = "todo", body = "") {
+    if (!id || !body) {
+      console.log("ERR no id provided to getDetails")
+      return;
+    }
+    return this.fetch(`${url}?id=${id}`, body, "PUT")
+    .then((res) => {
+      console.log("res", res)
+      return id
+    },
+    (error) => {
+        return "error"
+    });
+  }
 
-  handleSubmit(e) {
-    console.log("handleSubmit", e)
+  createTask(url = "todo", body = "") {
+    if (!body) {
+      console.log("ERR no id provided to getDetails")
+      return;
+    }
+    return this.fetch(`${url}`, body, "POST")
+    .then((res) => {
+      console.log("res", res)
+      return id
+    },
+    (error) => {
+        return "error"
+    });
   }
 
   handleDelete(item) {
-    console.log("handleSubmit", item)
-    let todos = this.state.todos;
-    const itemIndex = _.findIndex(todos, {
-      id: item.id
-    });
-    if (itemIndex < 1) return;
-    todos = todos.slice(itemIndex, itemIndex + 1)
-    this.setState({ todos })
-    return this.deleteRecord(item.id)
+    console.log("handleDelete", item)
+    return this.deleteTask(item.id)
   }
 
-  fetch(url, body, method) {
-    console.log("FETCH", url)
-    return fetch(`${this.BASE_URL}/${url}`, {
-      body: body ? JSON.stringify(body) : undefined,
-      headers: {
-          "content-type": "application/json",
-      },
-      method,
-      mode: "cors",
-    }).then(
-      (resp) => {
-        if (resp.status === 404) {
-          return Promise.reject(new RouterError());
-      }
-      if (resp.status >= 400) {
-          return resp.json()
-              .catch(() => Promise.reject(new ServerError()))
-              .then(json => Promise.reject(new ServerError(json)));
-      }
-      console.log("RESP.status", resp.status)
-      return resp.json();
-    })
+  handleUpdate(item) {
+    console.log("handleUpdate", item)
+    return this.updateTask(item.id, "todo", item)
   }
 
-  /**
-   *
-   */
-  markComplete(id, isComplete) {
-    console.log("handleSubmit", id, isComplete)
-    // this.setState(prevState => ({
-    //   todos: prevState.todos.concat(e),
-    // }));
+  handleCreate(item) {
+    console.log("handleCreate", item)
+    return this.createTask("todo", item)
   }
 
   componentDidMount() {
@@ -131,14 +160,19 @@ class TodoApp extends React.Component {
       return <div>Loading...</div>;
     } else {
       return (
-        <div className="app">
-          <MenuAppBar filterItems={this.getTodos}/>
-          <Input handleSubmit={this.handleSubmit} todos={this.state.todos}/>
-          <TodoList items={this.state.todos} markComplete={this.markComplete} getDetails={this.getDetails} handleDelete={this.handleDelete} className="todos"/>
+        <div className="app" style={divStyle}>
+          <MenuAppBar filterItems={this.getTodos} />
+          <Input handleSubmit={this.handleCreate} />
+          <TodoList
+              items={this.state.todos}
+              getDetails={this.getDetails}
+              handleDelete={this.handleDelete}
+              handleUpdate={this.handleUpdate}
+              className="todos"
+          />
         </div>
       );
     }
-
   }
 }
 

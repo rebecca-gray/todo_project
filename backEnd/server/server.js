@@ -1,20 +1,31 @@
 'use strict';
-const sqlite3  = require('sqlite3').verbose();
-const express = require('express');
-const app = express();
+const sqlite3 = require('sqlite3').verbose();
+const restify = require('restify');
+const corsMiddleware = require('restify-cors-middleware')
 const port = process.env.PORT || 5000;
 const moment = require('moment');
 const url = require('url');
+const app = restify.createServer({
+    name: "todoApp",
+    version: "1.0.0"
+});
 
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-  });
+app.use(restify.plugins.acceptParser(app.acceptable));
+app.use(restify.plugins.queryParser());
+app.use(restify.plugins.bodyParser());
 
-app.listen(port, function () {
+const cors = corsMiddleware({
+    preflightMaxAge: 5, //Optional
+    origins: ['http://localhost:8080', /^http?:\/\/localhost:8080(:[\d]+)?$/,
+    'http://localhost:5000', /^http?:\/\/localhost:5000(:[\d]+)?$/,  /^http?:\/\/localhost:5000$/],
+  })
+
+app.listen(port, () => {
     console.log(`todoApp listening on port ${port}!`);
 });
+
+app.pre(cors.preflight)
+app.use(cors.actual)
 
 const db = new sqlite3.Database('todoApp', (err) => {
     if (err) {
@@ -60,11 +71,14 @@ const db = new sqlite3.Database('todoApp', (err) => {
  *        }
  * }
  */
+
 db.serialize(function() {
   db.run("CREATE TABLE if not exists todos (id INTEGER PRIMARY KEY, isComplete TEXT, title TEXT, body TEXT, deadline TEXT)");
-  var stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
-
-//   stmt.finalize();
+//   var stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
+//    stmt.run(null, 'true', 'Concert', 'La Traviata with Seamus', '2018-08-18')
+//    stmt.run(null, 'false', 'Birthday Party', 'Aidan turns 9', '2018-08-23')
+//    stmt.run(null, 'false', 'Extreme', 'Swim The English Channel', '2018-08-01')
+//    stmt.finalize();
 
   db.each("SELECT * FROM todos", function(err, row) {
       console.log(row.id + ": " + row.body);
@@ -144,7 +158,7 @@ app.get('/future', (req, res) => {
 app.get('/overdue', (req, res) => {
     console.log("overdue")
     let today = moment().format("YYYY-MM-DD").toString()
-    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE deadline >= "${today}" AND isComplete LIKE '%false%' ORDER BY deadline`
+    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE deadline <= "${today}" AND isComplete LIKE '%false%' ORDER BY deadline`
     db.all(query, [], function(err, rows){
         if (err) {
             console.log("ERR", err)
@@ -204,7 +218,7 @@ app.get('/detail', (req, res) => {
 /**
  * update records by id
  */
-app.patch('/detail/:id', (req, res) => {
+app.put('/detail/:id', (req, res) => {
     // db.run("UPDATE table_name where condition");
 })
 

@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "moment": "^2.22.2",
-    "request": "^2.88.0",
     "restify": "^7.2.1",
     "restify-cors-middleware": "^1.1.1",
     "restify-errors": "^6.1.1",
@@ -25,8 +24,7 @@
     "jest-fetch-mock": "^1.6.5",
     "mocha": "^5.2.0",
     "sinon": "^6.1.5",
-    "sinon-chai": "^3.2.0",
-    "supertest": "^3.1.0"
+    "sinon-chai": "^3.2.0"
   },
   "jest": {
     "automock": false,

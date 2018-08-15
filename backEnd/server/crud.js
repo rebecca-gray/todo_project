@@ -11,6 +11,16 @@ class Crud {
             }
             console.log('Connected to SQlite database.');
         });
+        this.db.serialize(() => {
+            this.db.run("CREATE TABLE if not exists todos (id INTEGER PRIMARY KEY, isComplete TEXT, title TEXT, body TEXT, deadline TEXT)");
+            const stmt = this.db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
+            stmt.run(null, 'false', 'Create A Task', 'Something fun to do!', '2018-08-18');
+            stmt.finalize();
+
+            this.db.each("SELECT * FROM todos", function(err, row) {
+                console.log(row.id + ": " + row.body);
+            });
+        });
     }
 
     fetchAll(req, res, next) {

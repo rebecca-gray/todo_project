@@ -7,11 +7,13 @@ class Todo {
     static createTable (db) {
         return db.serialize(() => {
             db.run("CREATE TABLE if not exists todos (id INTEGER PRIMARY KEY, isComplete TEXT, title TEXT, body TEXT, deadline TEXT)");
+               const stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
+               stmt.run(null, 'false', 'Create A Task', 'Something fun to do!', '2018-08-18')
             // const stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
             //  stmt.run(null, 'true', 'Concert', 'La Traviata with Seamus', '2018-08-18')
             //  stmt.run(null, 'false', 'Birthday Party', 'Aidan turns 9', '2018-08-23')
             //  stmt.run(null, 'false', 'Extreme', 'Swim The English Channel', '2018-08-01')
-            //  stmt.finalize();
+               stmt.finalize();
 
             db.each("SELECT * FROM todos", function(err, row) {
                 console.log(row.id + ": " + row.body);

@@ -41,14 +41,10 @@ class ErrorBar extends React.Component {
           }}
           message={<span id="message-id">Error: {this.props.error}</span>}
           action={[
-            // <Button key="undo" color="secondary" size="small" onClick={this.handleClose}>
-            //   UNDO
-            // </Button>,
             <IconButton
               key="close"
               aria-label="Close"
               color="inherit"
-            //   className={close}
               onClick={this.handleClose}
             >
               <CloseIcon />

@@ -81,7 +81,7 @@ class Todo {
      * @returns {String}
      */
     static getIncompleteQuery () {
-        `SELECT id, isComplete, title, deadline FROM todos WHERE isComplete LIKE '%false%' ORDER BY deadline`
+        return `SELECT id, isComplete, title, deadline FROM todos WHERE isComplete LIKE '%false%' ORDER BY deadline`
     }
       /**
      * find a single full record from an id

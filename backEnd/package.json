@@ -11,20 +11,18 @@
   "author": "rebecca.gray@gmail.com",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.18.3",
-    "chai": "^4.1.2",
-    "express": "^4.16.3",
-    "mocha": "^5.2.0",
     "moment": "^2.22.2",
     "restify": "^7.2.1",
     "restify-cors-middleware": "^1.1.1",
-    "restify-errors": "^6.1.1",
-    "sinon": "^6.1.5",
-    "sinon-chai": "^3.2.0",
     "sqlite3": "^4.0.2",
-    "url": "^0.11.0"
+    "url": "^0.11.0",
+    "request": "^2.83.0",
+    "restify-errors": "^6.1.1"
   },
   "devDependencies": {
-    "request": "^2.83.0"
+    "sinon": "^6.1.5",
+    "chai": "^4.1.2",
+    "sinon-chai": "^3.2.0",
+    "mocha": "^5.2.0"
   }
 }

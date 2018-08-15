@@ -4,6 +4,7 @@ import Input from "./input";
 import MenuAppBar from "./MenuAppBar"
 import 'whatwg-fetch'
 import TodoList from "./todoList"
+import ErrorBar from "./errorBar"
 
 const divStyle = {
   padding: '100px',
@@ -18,8 +19,9 @@ class TodoApp extends React.Component {
     super(props);
     this.state = {
       todos: [],
-      error: null,
-      isLoaded: false
+      error: "",
+      isLoaded: false,
+      showError: false
     };
     this.BASE_URL = `http://localhost:5000`;
     this.createTask = this.createTask.bind(this);
@@ -30,6 +32,7 @@ class TodoApp extends React.Component {
     this.handleDelete = this.handleDelete.bind(this);
     this.getTodos = this.getTodos.bind(this)
     this.getDetails = this.getDetails.bind(this)
+    this.closeError = this.closeError.bind(this)
   }
 
   fetch(url, body, method) {
@@ -41,94 +44,140 @@ class TodoApp extends React.Component {
       },
       method,
       mode: "cors",
-    }).then(
-      (resp) => {
+    }).then((resp) => {
         if (resp.status === 404) {
-          return Promise.reject(new RouterError());
-      }
-      if (resp.status >= 400) {
+          this.setState({
+            isLoaded: true,
+            error: "There was a problem connecting to the server.",
+            showError: true
+          });
+        }
+        if (resp.status >= 400) {
           return resp.json()
-              .catch(() => Promise.reject(new ServerError()))
-              .then(json => Promise.reject(new ServerError(json)));
-      }
-      console.log("RESP.status", resp.status)
-      return resp.json();
+            this.setState({
+              isLoaded: true,
+              error: "The connection to the server is not authorized.",
+              showError: true
+            });
+        }
+        return resp.json();
+    }).catch((error) => {
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
     })
   }
 
   getTodos(url = "all", body = "") {
     this.fetch(url, body, "GET")
     .then((todos) => {
-      console.log("todos", todos)
-      this.setState({
+        if (todos === undefined) {
+          this.setState({
+            isLoaded: true,
+            todos: [],
+            error: "Unable to connect to server",
+            showError: true
+          });
+          return;
+        }
+        this.setState({
           isLoaded: true,
-          todos
+          todos,
         });
       },
       (error) => {
         this.setState({
           isLoaded: true,
-          error
+          error,
+          showError: true
         });
     })
   }
 
   getDetails(url = "detail", body = "", id) {
     if (!id) {
-      console.log("ERR no id provided to getDetails")
-      return;
+      this.setState({
+        isLoaded: true,
+        error: "Unable to get details for this item.",
+        showError: true
+      });
     }
     return this.fetch(`${url}?id=${id}`, body, "GET")
     .then((todos) => {
-      console.log("todos", todos)
         return todos
       },
       (error) => {
-          return "error"
+          this.setState({
+            isLoaded: true,
+            error,
+            showError: true
+          });
       });
   }
 
-  deleteTask(id, url = "", body = "") {
+  deleteTask(id, url = "delete", body = "") {
     if (!id) {
-      console.log("ERR no id provided to getDetails")
-      return;
+      this.setState({
+        isLoaded: true,
+        error: "Unable to get details for this item.",
+        showError: true
+      });
     }
-    return this.fetch(`${url}?id=${id}`, body, "DELETE")
+    return this.fetch(`${url}?id=${id}`, body, "put")
     .then((res) => {
       this.setState({ todos: res })
     },
     (error) => {
-        return "error"
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
     });
   }
 
   updateTask(id, url = "todo", body = "") {
     if (!id || !body) {
-      console.log("ERR no id provided to getDetails")
+      this.setState({
+        isLoaded: true,
+        error: "Not able to fetch details for this item.",
+        showError: true
+      });
       return;
     }
     return this.fetch(`${url}?id=${id}`, body, "PUT")
     .then((res) => {
-      console.log("update res", res)
       this.setState({ todos: res })
     },
     (error) => {
-        return "error"
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
     });
   }
 
   createTask(url = "todo", body = "") {
     if (!body) {
-      console.log("ERR no id provided to getDetails")
-      return;
+      this.setState({
+        isLoaded: true,
+        error: "Not able to fetch details for this item.",
+        showError: true
+      });
     }
     return this.fetch(`${url}`, body, "POST")
     .then((res) => {
-      console.log("create res", res)
       this.setState({ todos: res })
     },
     (error) => {
-        return "error"
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
     });
   }
 
@@ -147,20 +196,23 @@ class TodoApp extends React.Component {
     return this.createTask("todo", item)
   }
 
+  closeError() {
+    this.setState({ showError: false })
+  }
+
   componentDidMount() {
     this.getTodos()
   }
 
   render() {
-    const { error, isLoaded, todos } = this.state;
-    if (error) {
-      return <div>Error: {error.message}</div>;
-    } else if (!isLoaded) {
+    // const { error, isLoaded, todos } = this.state;
+    if (!this.state.isLoaded) {
       return <div>Loading...</div>;
     } else {
       return (
         <div className="app" style={divStyle}>
           <MenuAppBar filterItems={this.getTodos} />
+          <ErrorBar open={this.state.showError} error={this.state.error} onClose={this.closeError}/>
           <Input handleSubmit={this.handleCreate} />
           <TodoList
               items={this.state.todos}

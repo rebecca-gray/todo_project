@@ -19,7 +19,7 @@ class TodoApp extends React.Component {
     super(props);
     this.state = {
       todos: [],
-      error: "",
+      error: {},
       isLoaded: false,
       showError: false
     };
@@ -48,7 +48,7 @@ class TodoApp extends React.Component {
         if (resp.status === 404) {
           this.setState({
             isLoaded: true,
-            error: "There was a problem connecting to the server.",
+            error: { message: "There was a problem connecting to the server." },
             showError: true
           });
         }
@@ -56,7 +56,7 @@ class TodoApp extends React.Component {
           return resp.json()
             this.setState({
               isLoaded: true,
-              error: "The connection to the server is not authorized.",
+              error: { message: "The connection to the server is not authorized." },
               showError: true
             });
         }
@@ -77,7 +77,7 @@ class TodoApp extends React.Component {
           this.setState({
             isLoaded: true,
             todos: [],
-            error: "Unable to connect to server",
+            error: { message: "There was a problem connecting to the server." },
             showError: true
           });
           return;
@@ -100,7 +100,7 @@ class TodoApp extends React.Component {
     if (!id) {
       this.setState({
         isLoaded: true,
-        error: "Unable to get details for this item.",
+        error: { message: "Unable to get details for this item." },
         showError: true
       });
     }
@@ -121,7 +121,7 @@ class TodoApp extends React.Component {
     if (!id) {
       this.setState({
         isLoaded: true,
-        error: "Unable to get details for this item.",
+        error: { message: "Unable to get details for this item." },
         showError: true
       });
     }
@@ -142,7 +142,7 @@ class TodoApp extends React.Component {
     if (!id || !body) {
       this.setState({
         isLoaded: true,
-        error: "Not able to fetch details for this item.",
+        error: { message: "Not able to fetch details for this item." },
         showError: true
       });
       return;
@@ -164,7 +164,7 @@ class TodoApp extends React.Component {
     if (!body) {
       this.setState({
         isLoaded: true,
-        error: "Not able to fetch details for this item.",
+        error: { message: "Not able to fetch details for this item." },
         showError: true
       });
     }
@@ -212,7 +212,7 @@ class TodoApp extends React.Component {
       return (
         <div className="app" style={divStyle}>
           <MenuAppBar filterItems={this.getTodos} />
-          <ErrorBar open={this.state.showError} error={this.state.error} onClose={this.closeError}/>
+          <ErrorBar open={this.state.showError} error={this.state.error.message} onClose={this.closeError}/>
           <Input handleSubmit={this.handleCreate} />
           <TodoList
               items={this.state.todos}

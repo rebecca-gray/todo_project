@@ -30,25 +30,3 @@ const FULL_DATA_SET = [
     {id: 3, isComplete: "false", title: "Birthday Party", deadline: "2018-08-23", body: "baz"}
 ]
 
-describe("Server", () => {
-    describe("fetchAll", () => {
-        it("should return a complete short data set", (done) => {
-            const responseBody = {
-                status: 'success',
-                data: SHORT_DATA_SET,
-              };
-            get(null, responseObject, JSON.stringify(responseBody));
-            request.get(`${base}/all`, (err, res, body) => {
-                expect(res.statusCode).to.equal(200);
-                expect(res.headers['content-type']).to.contain('application/json');
-                body = JSON.parse(body);
-                expect(body.satus).to.equal('success');
-                expect(body.data.length).to.equal(3);
-                expect(body.data[0]).to.include.keys(
-                    'id', 'isComplete', 'deadline', 'title'
-                );
-                expect(body.daa[0].title).to.equal('Extreme')
-            })
-        });
-    })
-})

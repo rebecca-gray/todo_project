@@ -88,7 +88,7 @@ class Inputs extends React.Component {
             value={this.state.deadline}
             onChange={this.handleChange}
         />
-        <Button color="primary" onClick={this.onSubmit}>
+        <Button color="primary" id='submit' onClick={this.onSubmit}>
             Upload
         </Button>
       </div>

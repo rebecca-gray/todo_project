@@ -30,7 +30,7 @@ app.use(cors.actual)
 
 const db = new sqlite3.Database('todoApp', (err) => {
     if (err) {
-        res.send(new error.NotFoundException())
+        return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
     }
     console.log('Connected to SQlite database.');
 });
@@ -46,7 +46,7 @@ app.get('/all', (req, res, next) => {
     const query = Todo.getAllQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
         }
         res.json(rows);
         return next()
@@ -62,7 +62,7 @@ app.get('/today', (req, res, next) => {
     const query = Todo.getTodayQuery();
     db.all(query, [], function(err, rows){
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
         }
         res.json(rows);
         return next()
@@ -78,7 +78,7 @@ app.get('/tomorrow', (req, res, next) => {
     const query = Todo.getTomorrowQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
         }
         res.json(rows);
         return next()
@@ -93,7 +93,7 @@ app.get('/future', (req, res, next) => {
     const query = Todo.getFutureQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
         }
         res.json(rows);
         return next()
@@ -108,7 +108,7 @@ app.get('/overdue', (req, res, next) => {
     const query = Todo.getOverdueQuery()
      db.all(query, [], function(err, rows){
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
         }
         res.json(rows);
         return next()
@@ -123,7 +123,7 @@ app.get('/complete', (req, res, next) => {
     const query = Todo.getCompleteQuery();
     db.all(query, [], function(err, rows){
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
         }
         res.json(rows);
         return next()
@@ -138,7 +138,7 @@ app.get('/incomplete', (req, res, next) => {
     const query = Todo.getIncompleteQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
         }
         res.json(rows);
         return next()
@@ -152,7 +152,7 @@ app.get('/incomplete', (req, res, next) => {
 app.get('/detail', (req, res, next) => {
     const id = url.parse(req.url, true).query.id
     if (!id) {
-        return next(new error.NotFoundException())
+        return next(new error.BadRequestError({ message: "The Item you're looking for was not found, sorry.", status: 404}))
     }
     const query = Todo.getDetailQuery(id)
     db.get(query, [id], function(err, rows){
@@ -173,7 +173,7 @@ app.put('/todo', (req, res, next) => {
     const query = Todo.getUpdateQuery()
     Promise.resolve(db.run(query, data, (err, rows) => {
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Todo you sent was not saved, sorry.", status: 404}))
         }
         return rows;
     })).then((rows) => {
@@ -200,7 +200,7 @@ app.post('/todo', (req, res, next) => {
         const query = Todo.getAllQuery()
         db.all(query, [], function(err, rows){
             if (err) {
-                return next(new error.NotFoundException())
+                return next(new error.BadRequestError({ message: "The Todo you sent was not created, sorry.", status: 404}))
             }
             res.json(rows);
             return next()
@@ -222,14 +222,14 @@ app.put('/delete', (req, res, next) => {
     const query = Todo.getDeleteQuery()
     Promise.resolve(db.run(query, [id], (err, rows) => {
         if (err) {
-            return next(new error.NotFoundException())
+            return next(new error.BadRequestError({ message: "The Todo you sent was not deleted, sorry.", status: 404}))
         }
         return rows;
     })).then((rows) => {
         const query = Todo.getAllQuery()
         db.all(query, [], function(err, rows){
             if (err) {
-                return next(new error.NotFoundException())
+                return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
             }
             res.json(rows);
             return next()

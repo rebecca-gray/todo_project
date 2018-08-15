@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`test to see if the input component renders correctly 1`] = `
+<div>
+  <div
+    className="MuiInput-root-6 MuiInput-underline-10"
+  >
+    <input
+      aria-label="Title"
+      className="MuiInput-input-14"
+      id="title"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      placeholder="Title"
+      type="text"
+      value=""
+    />
+  </div>
+  <div
+    className="MuiInput-root-6 MuiInput-underline-10"
+  >
+    <input
+      aria-label="Description"
+      className="MuiInput-input-14"
+      id="body"
+      onBlur={[Function]}
+      onChange={[Function]}
+      onFocus={[Function]}
+      placeholder="Description"
+      type="text"
+      value=""
+    />
+  </div>
+  <div
+    className="MuiFormControl-root-19"
+  >
+    <label
+      className="MuiFormLabel-root-28 MuiInputLabel-root-23 MuiInputLabel-formControl-24 MuiInputLabel-animated-27 MuiInputLabel-shrink-26"
+      data-shrink={true}
+      htmlFor="deadline"
+    >
+      Deadline
+    </label>
+    <div
+      className="MuiInput-root-6 MuiInput-formControl-7 MuiInput-underline-10"
+    >
+      <input
+        aria-invalid={false}
+        className="MuiInput-input-14 MuiInput-inputType-17"
+        disabled={false}
+        id="deadline"
+        onBlur={[Function]}
+        onChange={[Function]}
+        onFocus={[Function]}
+        required={false}
+        type="date"
+        value=""
+      />
+    </div>
+  </div>
+  <button
+    className="MuiButtonBase-root-59 MuiButton-root-35 MuiButton-text-37 MuiButton-textPrimary-38 MuiButton-flat-40 MuiButton-flatPrimary-41"
+    disabled={false}
+    id="submit"
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex="0"
+    type="button"
+  >
+    <span
+      className="MuiButton-label-36"
+    >
+      Upload
+    </span>
+    <span
+      className="MuiTouchRipple-root-62"
+    />
+  </button>
+</div>
+`;

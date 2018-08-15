@@ -103,15 +103,6 @@ class Todo {
     static getDeleteQuery () {
         return `DELETE FROM todos WHERE id=?`
     }
-
-           // const data = req;
-    //data.id = null;
-    // db.run(`INSERT INTO todos VALUES (?, ?, ?, ?, ?)`, [data], (err) => {
-    //     if (err) {
-    //     return console.log(err.message);
-    //     }
-    //     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    // });
 };
 
 module.exports = Todo;

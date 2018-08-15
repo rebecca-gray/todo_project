@@ -8,6 +8,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Checkbox from '@material-ui/core/Checkbox';
 import IconButton from '@material-ui/core/IconButton';
 import Delete from '@material-ui/icons/Delete';
+import Edit from '@material-ui/icons/Edit';
 import moment from "moment"
 import DetailView from "./detailView";
 
@@ -29,7 +30,6 @@ class TodoList extends React.Component {
       selectedItem: null,
       modalOpen: {},
     };
-    // initialize with modals closed
     props.items.forEach((item) => {
       this.state.modalOpen[item.id] = false;
     })
@@ -40,43 +40,17 @@ class TodoList extends React.Component {
     this.setState(state => ({ open: !state.open }));
   };
 
-  handleChange (id) {
-      console.log("change", id)
-    // this.setState({
-    //   expanded: this.state.expanded ? this.panel : false,
-    // });
-    // const index = this.props.items.findIndex(x => x.id === this.key)
-    // console.log("STUFF", {
-    //     id: this.panel.key,
-    //     title: document.querySelector(`.{title_${this.panel.key}}`)
-    // })
-  };
-
   handleDelete (item) {
     console.log("delete", item.id)
     this.props.handleDelete(item)
   }
 
-  markComplete(id) {
-    console.log("markComplete")
-    // this.props.items.map(item => {
-    //     if (item.id === id) {
-    //       const isComplete = item.isComplete === "false" ? "true" : "false"
-    //       item.isComplete = isComplete;
-    //       this.props.markComplete(item, isComplete)
-    //     }
-    // })
-  };
-
   displayDetails(item) {
     if (this.state.selectedItem) {
-       return this.hideDetails(item)
+      return this.hideDetails(item)
     }
-    console.log("displaydetails", item.id)
     this.props.getDetails("detail", "", item.id)
     .then((data) => {
-      console.log("data from fetch", data)
-      // item = data;
       const modalOpen = this.state.modalOpen;
       modalOpen[item.id] = true;
       this.setState({
@@ -87,13 +61,13 @@ class TodoList extends React.Component {
   }
 
   hideDetails(item) {
-    console.log("hideDetails", item)
     const modalOpen = this.state.modalOpen;
     modalOpen[item.id] = false;
     this.setState({
       selectedItem: null,
       modalOpen
     });
+    this.props.handleUpdate(item)
   }
 
   render() {
@@ -103,10 +77,13 @@ class TodoList extends React.Component {
 
     if (this.props.items.length < 1) {
       return (
-        <ListItem
-          key='empty_element'
-          primaryText='No Tasks Yet'
-        />
+        <List>
+        <ListItem key='empty_element'>
+        <ListItemText>
+           No Tasks Yet
+        </ListItemText>
+        </ListItem>
+        </List>
       )
     }
     return (
@@ -118,14 +95,17 @@ class TodoList extends React.Component {
               key={item.id}
               role={undefined}
               dense
-              button
-              onClick={this.displayDetails.bind(this, item)}
-             className={item.id.toString()}
+              className={item.id.toString()}
             >
+            <IconButton onClick={this.displayDetails.bind(this, item)}>
+              <Edit/>
+            </IconButton>
+
               {selectedItem && (
                 <DetailView
                   open={this.state.modalOpen[item.id]}
                   markComplete={this.markComplete}
+                  onClose={this.hideDetails}
                   item={selectedItem}
                 />
               )}
@@ -140,7 +120,7 @@ class TodoList extends React.Component {
                 tabIndex={-1}
                 className={`isComplete_${item.id}`}
                 disableRipple
-                onClick={this.markComplete.bind(this, item.id)}
+                cursor={`disabled`}
               />
             <ListItemText primary={item.title} />
               {moment(item.deadline, ["MM-DD-YYYY", "YYYY-MM-DD"]).isSame(today, "day") &&

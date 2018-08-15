@@ -4,85 +4,35 @@ import Input from "./input";
 import MenuAppBar from "./MenuAppBar"
 import 'whatwg-fetch'
 import TodoList from "./todoList"
-import _ from "underscore"
+import ErrorBar from "./errorBar"
+
+const divStyle = {
+  padding: '100px',
+  margin: '20px',
+  border: '5px solid gray',
+  borderRadius: '10px',
+  backgroundColor: '#dee2e8',
+};
 
 class TodoApp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       todos: [],
-      error: null,
-      isLoaded: false
+      error: "",
+      isLoaded: false,
+      showError: false
     };
     this.BASE_URL = `http://localhost:5000`;
-    this.handleSubmit = this.handleSubmit.bind(this);
+    this.createTask = this.createTask.bind(this);
+    this.deleteTask = this.deleteTask.bind(this);
+    this.updateTask = this.updateTask.bind(this);
+    this.handleCreate = this.handleCreate.bind(this);
+    this.handleUpdate = this.handleUpdate.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
     this.getTodos = this.getTodos.bind(this)
     this.getDetails = this.getDetails.bind(this)
-  }
-
-  getTodos(url = "all", body = "") {
-    this.fetch(url, body, "GET")
-    .then((todos) => {
-      console.log("todos", todos)
-      this.setState({
-          isLoaded: true,
-          todos
-        });
-      },
-      (error) => {
-        this.setState({
-          isLoaded: true,
-          error
-        });
-    })
-  }
-
-  getDetails(url = "todo", body = "", id) {
-    if (!id) {
-      console.log("ERR no id provided to getDetails")
-      return;
-    }
-    return this.fetch(`${url}?id=${id}`, body, "GET")
-    .then((todos) => {
-      console.log("todos", todos)
-        return todos
-      },
-      (error) => {
-          return "error"
-      });
-  }
-
-  deleteRecord(url = "todo", body = "", id) {
-    if (!id) {
-      console.log("ERR no id provided to getDetails")
-      return;
-    }
-    return this.fetch(`${url}?id=${item.id}`, body, "DELETE")
-    .then((res) => {
-      console.log("res", res)
-      return id
-    },
-    (error) => {
-        return "error"
-    });
-  }
-
-
-  handleSubmit(e) {
-    console.log("handleSubmit", e)
-  }
-
-  handleDelete(item) {
-    console.log("handleSubmit", item)
-    let todos = this.state.todos;
-    const itemIndex = _.findIndex(todos, {
-      id: item.id
-    });
-    if (itemIndex < 1) return;
-    todos = todos.slice(itemIndex, itemIndex + 1)
-    this.setState({ todos })
-    return this.deleteRecord(item.id)
+    this.closeError = this.closeError.bind(this)
   }
 
   fetch(url, body, method) {
@@ -90,33 +40,164 @@ class TodoApp extends React.Component {
     return fetch(`${this.BASE_URL}/${url}`, {
       body: body ? JSON.stringify(body) : undefined,
       headers: {
-          "content-type": "application/json",
+        "content-type": "application/json",
       },
       method,
       mode: "cors",
-    }).then(
-      (resp) => {
+    }).then((resp) => {
         if (resp.status === 404) {
-          return Promise.reject(new RouterError());
-      }
-      if (resp.status >= 400) {
+          this.setState({
+            isLoaded: true,
+            error: "There was a problem connecting to the server.",
+            showError: true
+          });
+        }
+        if (resp.status >= 400) {
           return resp.json()
-              .catch(() => Promise.reject(new ServerError()))
-              .then(json => Promise.reject(new ServerError(json)));
-      }
-      console.log("RESP.status", resp.status)
-      return resp.json();
+            this.setState({
+              isLoaded: true,
+              error: "The connection to the server is not authorized.",
+              showError: true
+            });
+        }
+        return resp.json();
+    }).catch((error) => {
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
     })
   }
 
-  /**
-   *
-   */
-  markComplete(id, isComplete) {
-    console.log("handleSubmit", id, isComplete)
-    // this.setState(prevState => ({
-    //   todos: prevState.todos.concat(e),
-    // }));
+  getTodos(url = "all", body = "") {
+    this.fetch(url, body, "GET")
+    .then((todos) => {
+        if (todos === undefined) {
+          this.setState({
+            isLoaded: true,
+            todos: [],
+            error: "Unable to connect to server",
+            showError: true
+          });
+          return;
+        }
+        this.setState({
+          isLoaded: true,
+          todos,
+        });
+      },
+      (error) => {
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
+    })
+  }
+
+  getDetails(url = "detail", body = "", id) {
+    if (!id) {
+      this.setState({
+        isLoaded: true,
+        error: "Unable to get details for this item.",
+        showError: true
+      });
+    }
+    return this.fetch(`${url}?id=${id}`, body, "GET")
+    .then((todos) => {
+        return todos
+      },
+      (error) => {
+          this.setState({
+            isLoaded: true,
+            error,
+            showError: true
+          });
+      });
+  }
+
+  deleteTask(id, url = "delete", body = "") {
+    if (!id) {
+      this.setState({
+        isLoaded: true,
+        error: "Unable to get details for this item.",
+        showError: true
+      });
+    }
+    return this.fetch(`${url}?id=${id}`, body, "put")
+    .then((res) => {
+      this.setState({ todos: res })
+    },
+    (error) => {
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
+    });
+  }
+
+  updateTask(id, url = "todo", body = "") {
+    if (!id || !body) {
+      this.setState({
+        isLoaded: true,
+        error: "Not able to fetch details for this item.",
+        showError: true
+      });
+      return;
+    }
+    return this.fetch(`${url}?id=${id}`, body, "PUT")
+    .then((res) => {
+      this.setState({ todos: res })
+    },
+    (error) => {
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
+    });
+  }
+
+  createTask(url = "todo", body = "") {
+    if (!body) {
+      this.setState({
+        isLoaded: true,
+        error: "Not able to fetch details for this item.",
+        showError: true
+      });
+    }
+    return this.fetch(`${url}`, body, "POST")
+    .then((res) => {
+      this.setState({ todos: res })
+    },
+    (error) => {
+        this.setState({
+          isLoaded: true,
+          error,
+          showError: true
+        });
+    });
+  }
+
+  handleDelete(item) {
+    console.log("handleDelete", item)
+    return this.deleteTask(item.id)
+  }
+
+  handleUpdate(item) {
+    console.log("handleUpdate", item)
+    return this.updateTask(item.id, "todo", item)
+  }
+
+  handleCreate(item) {
+    console.log("handleCreate", item)
+    return this.createTask("todo", item)
+  }
+
+  closeError() {
+    this.setState({ showError: false })
   }
 
   componentDidMount() {
@@ -124,21 +205,25 @@ class TodoApp extends React.Component {
   }
 
   render() {
-    const { error, isLoaded, todos } = this.state;
-    if (error) {
-      return <div>Error: {error.message}</div>;
-    } else if (!isLoaded) {
+    // const { error, isLoaded, todos } = this.state;
+    if (!this.state.isLoaded) {
       return <div>Loading...</div>;
     } else {
       return (
-        <div className="app">
-          <MenuAppBar filterItems={this.getTodos}/>
-          <Input handleSubmit={this.handleSubmit} todos={this.state.todos}/>
-          <TodoList items={this.state.todos} markComplete={this.markComplete} getDetails={this.getDetails} handleDelete={this.handleDelete} className="todos"/>
+        <div className="app" style={divStyle}>
+          <MenuAppBar filterItems={this.getTodos} />
+          <ErrorBar open={this.state.showError} error={this.state.error} onClose={this.closeError}/>
+          <Input handleSubmit={this.handleCreate} />
+          <TodoList
+              items={this.state.todos}
+              getDetails={this.getDetails}
+              handleDelete={this.handleDelete}
+              handleUpdate={this.handleUpdate}
+              className="todos"
+          />
         </div>
       );
     }
-
   }
 }
 

@@ -1,200 +1,163 @@
 'use strict';
-const sqlite3  = require('sqlite3').verbose();
-const express = require('express');
-const app = express();
+const sqlite3 = require('sqlite3').verbose();
+const restify = require('restify');
+const error = require('restify-errors');
+const corsMiddleware = require('restify-cors-middleware')
 const port = process.env.PORT || 5000;
-const moment = require('moment');
 const url = require('url');
+const Todo = require("./todo");
+const app = restify.createServer({
+    name: "todoApp",
+    version: "1.0.0"
+});
 
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-  });
+app.use(restify.plugins.acceptParser(app.acceptable));
+app.use(restify.plugins.queryParser());
+app.use(restify.plugins.bodyParser());
 
-app.listen(port, function () {
+const cors = corsMiddleware({
+    preflightMaxAge: 5, //Optional
+    origins: ['http://localhost:8080', /^http?:\/\/localhost:8080(:[\d]+)?$/,
+    'http://localhost:5000', /^http?:\/\/localhost:5000(:[\d]+)?$/,  /^http?:\/\/localhost:5000$/],
+  })
+
+app.listen(port, () => {
     console.log(`todoApp listening on port ${port}!`);
 });
 
+app.pre(cors.preflight)
+app.use(cors.actual)
+
 const db = new sqlite3.Database('todoApp', (err) => {
     if (err) {
-      return console.error(err.message);
+        res.send(new error.NotFoundException())
     }
     console.log('Connected to SQlite database.');
 });
 
-/**
- * @file
- * Routes:
- * GET: today, complete, incomplete, future, overdue, tomorrow, all,
- * POST:
- * PUT: id
- * DELETE: id
- *
- * sample data set:
- * stmt.run(null, 'true', 'Concert', 'La Traviata with Seamus', '2018-08-18')
- * stmt.run(null, 'false', 'Birthday Party', 'Aidan turns 9', '2018-08-23')
- * stmt.run(null, 'false', 'Extreme', 'Swim The English Channel', '2018-08-01')
- *
- * schema: {
- *     "id": {
- *         type: INTEGER PRIMARY KEY
- *      },
- *      "isComplete": {
- *         type: TEXT,
- *         "enum": [
- *            "false",
- *            "true"
- *         ]
- *         "default": "false"
- *      },
- *      "title": {
- *          "type": "string"
- *       },
- *       "body": {
- *           "type": "string"
- *       },
- *       "deadline": {
- *           "type": "string"
- *           "format": "isoDateString"
- *        }
- * }
- */
-db.serialize(function() {
-  db.run("CREATE TABLE if not exists todos (id INTEGER PRIMARY KEY, isComplete TEXT, title TEXT, body TEXT, deadline TEXT)");
-  var stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
 
-//   stmt.finalize();
-
-  db.each("SELECT * FROM todos", function(err, row) {
-      console.log(row.id + ": " + row.body);
-  });
-});
+Todo.createTable(db);
 
  /**
-  * return all todo records in the db
-  * @returns {array of objects}
+  * return all records in the db, short format
+  * @returns {rows}
   */
-app.get('/all', (req, res) => {
-    const query = `SELECT id, isComplete, title, deadline FROM todos ORDER BY deadline`
+app.get('/all', (req, res, next) => {
+    const query = Todo.getAllQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
+        return next()
     });
 })
 
 /**
  * filter records to this day
  * TODO: need to handle time zones vs local time
- * @returns {array of objects}
+ * @returns {rows}
  */
-app.get('/today', (req, res) => {
-    console.log("today")
-    let today = moment().format("YYYY-MM-DD").toString()
-    const tomorrow = moment().add(1, "days").format("YYYY-MM-DD").toString()
-    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE deadline >= "${today}" AND deadline <= "${tomorrow}"`
+app.get('/today', (req, res, next) => {
+    const query = Todo.getTodayQuery();
     db.all(query, [], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
+        return next()
     });
 })
 
 /**
  * filter records to tomorrow
  * TODO: need to handle time zones vs local time
- * @returns {array of objects}
+ * @returns {rows}
  */
-app.get('/tomorrow', (req, res) => {
-    console.log("tomorrow")
-    const tomorrow = moment().add(1, "days").format("YYYY-MM-DD").toString()
-    const dayAfterTomorrow = moment().add(2, "days").format("YYYY-MM-DD").toString()
-    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE deadline >= "${tomorrow}" AND deadline <= "${dayAfterTomorrow}" ORDER BY deadline`
+app.get('/tomorrow', (req, res, next) => {
+    const query = Todo.getTomorrowQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
+        return next()
     });
 })
 
 /**
  * filter records >= today
- * @returns {array of objects}
+ * @returns {rows}
  */
-app.get('/future', (req, res) => {
-    console.log("today")
-    let today = moment().format("YYYY-MM-DD").toString()
-    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE deadline >= "${today}" ORDER BY deadline`
+app.get('/future', (req, res, next) => {
+    const query = Todo.getFutureQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
+        return next()
     });
 })
 
 /**
  * filter records >= today && incomplete
- * @returns {array of objects}
+ * @returns {rows}
  */
-app.get('/overdue', (req, res) => {
-    console.log("overdue")
-    let today = moment().format("YYYY-MM-DD").toString()
-    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE deadline >= "${today}" AND isComplete LIKE '%false%' ORDER BY deadline`
-    db.all(query, [], function(err, rows){
+app.get('/overdue', (req, res, next) => {
+    const query = Todo.getOverdueQuery()
+     db.all(query, [], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
+        return next()
     });
 })
 
 /**
  * filter records that are marked complete
- * @returns {array of objects}
+ * @returns {rows}
  */
-app.get('/complete', (req, res) => {
-    console.log("complete")
-    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE isComplete LIKE '%true%' ORDER BY deadline`
+app.get('/complete', (req, res, next) => {
+    const query = Todo.getCompleteQuery();
     db.all(query, [], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
+        return next()
     });
 })
 
 /**
  * filter records that are not complete
- * @returns {array of objects}
+ * @returns {rows}
  */
-app.get('/incomplete', (req, res) => {
-    console.log("complete")
-    const query = `SELECT id, isComplete, title, deadline FROM todos WHERE isComplete LIKE '%false%' ORDER BY deadline`
+app.get('/incomplete', (req, res, next) => {
+    const query = Todo.getIncompleteQuery()
     db.all(query, [], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
+        return next()
     });
 })
 
 /**
- * update records by id
+ * fetch record by id
+ * @returns {row}
  */
-app.get('/detail', (req, res) => {
+app.get('/detail', (req, res, next) => {
     const id = url.parse(req.url, true).query.id
     if (!id) {
-        console.log("no id sent", url.parse(req.url, true))
+        return next(new error.NotFoundException())
     }
-    const query = `SELECT * FROM todos WHERE id = ?`
+    const query = Todo.getDetailQuery(id)
     db.get(query, [id], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return next(new error.NotFoundException())
         }
         res.json(rows);
     });
@@ -202,29 +165,75 @@ app.get('/detail', (req, res) => {
 
 
 /**
- * update records by id
+ * update record by id
+ * @returns {rows}
  */
-app.patch('/detail/:id', (req, res) => {
-    // db.run("UPDATE table_name where condition");
+app.put('/todo', (req, res, next) => {
+    let data = Todo.getFieldList(req.body)
+    const query = Todo.getUpdateQuery()
+    Promise.resolve(db.run(query, data, (err, rows) => {
+        if (err) {
+            return next(new error.NotFoundException())
+        }
+        return rows;
+    })).then((rows) => {
+        const query = Todo.getAllQuery()
+        db.all(query, [], function(err, rows){
+            if (err) {
+                return next(new error.NotFoundException())
+            }
+            res.json(rows);
+            return next()
+        });
+    });
 })
 
 /**
  * create record, no required fields at this point.
- * @returns {id}
+ * @returns {rows}
  */
-app.post('/', (req, res) => {
-    if (req.method == "OPTIONS") {
-        res.status(200);
-        res.send();
-      }
-    console.log("2 req", req.method, req.body)
-   // const data = req;
-    //data.id = null;
-    // db.run(`INSERT INTO todos VALUES (?, ?, ?, ?, ?)`, [data], (err) => {
-    //     if (err) {
-    //     return console.log(err.message);
-    //     }
-    //     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    // });
+app.post('/todo', (req, res, next) => {
+    const stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
+    stmt.run(null, `${req.body.isComplete}`, `${req.body.title}`, `${req.body.body}`, `${req.body.deadline}`)
+    Promise.resolve(stmt.finalize()
+    ).then((changes) => {
+        const query = Todo.getAllQuery()
+        db.all(query, [], function(err, rows){
+            if (err) {
+                return next(new error.NotFoundException())
+            }
+            res.json(rows);
+            return next()
+        });
+    });
+})
+
+/**
+ * TODO: since sqlite3 perfers the method del for delete but that does not pass cors
+ * I've used put method to handle deletes.
+ *
+ * @returns {rows}
+ */
+app.put('/delete', (req, res, next) => {
+    const id = url.parse(req.url, true).query.id
+    if (!id) {
+        return next(new error.NotFoundException())
+    }
+    const query = Todo.getDeleteQuery()
+    Promise.resolve(db.run(query, [id], (err, rows) => {
+        if (err) {
+            return next(new error.NotFoundException())
+        }
+        return rows;
+    })).then((rows) => {
+        const query = Todo.getAllQuery()
+        db.all(query, [], function(err, rows){
+            if (err) {
+                return next(new error.NotFoundException())
+            }
+            res.json(rows);
+            return next()
+        });
+    });
 })
 

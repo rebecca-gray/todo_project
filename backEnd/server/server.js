@@ -1,11 +1,8 @@
 'use strict';
-const sqlite3 = require('sqlite3').verbose();
 const restify = require('restify');
-const error = require('restify-errors');
 const corsMiddleware = require('restify-cors-middleware')
 const port = process.env.PORT || 5000;
-const url = require('url');
-const Todo = require("./todo");
+const crud = require("./crud")
 const app = restify.createServer({
     name: "todoApp",
     version: "1.0.0"
@@ -28,185 +25,68 @@ app.listen(port, () => {
 app.pre(cors.preflight)
 app.use(cors.actual)
 
-const db = new sqlite3.Database('todoApp', (err) => {
-    if (err) {
-        return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-    }
-    console.log('Connected to SQlite database.');
-});
-
-
-Todo.createTable(db);
-
  /**
   * return all records in the db, short format
   * @returns {rows}
   */
-app.get('/all', (req, res, next) => {
-    const query = Todo.getAllQuery()
-    db.all(query, [], function(err, rows){
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-        }
-        res.json(rows);
-        return next()
-    });
-})
+app.get('/all', crud.fetchAll)
 
 /**
  * filter records to this day
  * TODO: need to handle time zones vs local time
  * @returns {rows}
  */
-app.get('/today', (req, res, next) => {
-    const query = Todo.getTodayQuery();
-    db.all(query, [], function(err, rows){
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-        }
-        res.json(rows);
-        return next()
-    });
-})
+app.get('/today', crud.fetchToday)
 
 /**
  * filter records to tomorrow
  * TODO: need to handle time zones vs local time
  * @returns {rows}
  */
-app.get('/tomorrow', (req, res, next) => {
-    const query = Todo.getTomorrowQuery()
-    db.all(query, [], function(err, rows){
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-        }
-        res.json(rows);
-        return next()
-    });
-})
+app.get('/tomorrow', crud.fetchTomorrow)
 
 /**
  * filter records >= today
  * @returns {rows}
  */
-app.get('/future', (req, res, next) => {
-    const query = Todo.getFutureQuery()
-    db.all(query, [], function(err, rows){
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-        }
-        res.json(rows);
-        return next()
-    });
-})
+app.get('/future', crud.fetchFuture)
 
 /**
  * filter records >= today && incomplete
  * @returns {rows}
  */
-app.get('/overdue', (req, res, next) => {
-    const query = Todo.getOverdueQuery()
-     db.all(query, [], function(err, rows){
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-        }
-        res.json(rows);
-        return next()
-    });
-})
+app.get('/overdue', crud.fetchOverdue)
 
 /**
  * filter records that are marked complete
  * @returns {rows}
  */
-app.get('/complete', (req, res, next) => {
-    const query = Todo.getCompleteQuery();
-    db.all(query, [], function(err, rows){
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-        }
-        res.json(rows);
-        return next()
-    });
-})
+app.get('/complete', crud.fetchComplete)
 
 /**
  * filter records that are not complete
  * @returns {rows}
  */
-app.get('/incomplete', (req, res, next) => {
-    const query = Todo.getIncompleteQuery()
-    db.all(query, [], function(err, rows){
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-        }
-        res.json(rows);
-        return next()
-    });
-})
+app.get('/incomplete', crud.fetchIncomplete)
 
 /**
  * fetch record by id
  * @returns {row}
  */
-app.get('/detail', (req, res, next) => {
-    const id = url.parse(req.url, true).query.id
-    if (!id) {
-        return next(new error.BadRequestError({ message: "The Item you're looking for was not found, sorry.", status: 404}))
-    }
-    const query = Todo.getDetailQuery(id)
-    db.get(query, [id], function(err, rows){
-        if (err) {
-            return next(new error.NotFoundException())
-        }
-        res.json(rows);
-    });
-})
+app.get('/detail', crud.fetchDetail)
 
 
 /**
  * update record by id
  * @returns {rows}
  */
-app.put('/todo', (req, res, next) => {
-    let data = Todo.getFieldList(req.body)
-    const query = Todo.getUpdateQuery()
-    Promise.resolve(db.run(query, data, (err, rows) => {
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Todo you sent was not saved, sorry.", status: 404}))
-        }
-        return rows;
-    })).then((rows) => {
-        const query = Todo.getAllQuery()
-        db.all(query, [], function(err, rows){
-            if (err) {
-                return next(new error.NotFoundException())
-            }
-            res.json(rows);
-            return next()
-        });
-    });
-})
+app.put('/todo', crud.putTodo)
 
 /**
  * create record, no required fields at this point.
  * @returns {rows}
  */
-app.post('/todo', (req, res, next) => {
-    const stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
-    stmt.run(null, `${req.body.isComplete}`, `${req.body.title}`, `${req.body.body}`, `${req.body.deadline}`)
-    Promise.resolve(stmt.finalize()
-    ).then((changes) => {
-        const query = Todo.getAllQuery()
-        db.all(query, [], function(err, rows){
-            if (err) {
-                return next(new error.BadRequestError({ message: "The Todo you sent was not created, sorry.", status: 404}))
-            }
-            res.json(rows);
-            return next()
-        });
-    });
-})
+app.post('/todo', crud.postTodo)
 
 /**
  * TODO: since sqlite3 perfers the method del for delete but that does not pass cors
@@ -214,26 +94,5 @@ app.post('/todo', (req, res, next) => {
  *
  * @returns {rows}
  */
-app.put('/delete', (req, res, next) => {
-    const id = url.parse(req.url, true).query.id
-    if (!id) {
-        return next(new error.NotFoundException())
-    }
-    const query = Todo.getDeleteQuery()
-    Promise.resolve(db.run(query, [id], (err, rows) => {
-        if (err) {
-            return next(new error.BadRequestError({ message: "The Todo you sent was not deleted, sorry.", status: 404}))
-        }
-        return rows;
-    })).then((rows) => {
-        const query = Todo.getAllQuery()
-        db.all(query, [], function(err, rows){
-            if (err) {
-                return next(new error.BadRequestError({ message: "The Database is out of order, sorry.", status: 500}))
-            }
-            res.json(rows);
-            return next()
-        });
-    });
-})
+app.put('/delete', crud.delete)
 

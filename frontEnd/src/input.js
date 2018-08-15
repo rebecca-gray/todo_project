@@ -36,12 +36,13 @@ class Inputs extends React.Component {
     }
 
   onSubmit(e) {
+    console.log("onSubmit", e.target.id)
     e.preventDefault();
     this.props.handleSubmit({
         title: this.state.title,
         body: this.state.body,
         deadline: this.state.deadline,
-        isComplete: this.state.isComplete,
+        isComplete: false,
     });
     this.setState({
         title: "",
@@ -52,6 +53,7 @@ class Inputs extends React.Component {
   }
 
   handleChange(e) {
+    e.preventDefault();
     this.setState({ [e.target.id]: e.target.value });
   }
 
@@ -86,8 +88,8 @@ class Inputs extends React.Component {
             value={this.state.deadline}
             onChange={this.handleChange}
         />
-        <Button color="primary">
-        Upload
+        <Button color="primary" onClick={this.onSubmit}>
+            Upload
         </Button>
       </div>
     );

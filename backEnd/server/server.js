@@ -39,7 +39,7 @@ Todo.createTable(db);
 
  /**
   * return all records in the db, short format
-  * @returns {array of objects}
+  * @returns {rows}
   */
 app.get('/all', (req, res) => {
     const query = Todo.getAllQuery()
@@ -54,7 +54,7 @@ app.get('/all', (req, res) => {
 /**
  * filter records to this day
  * TODO: need to handle time zones vs local time
- * @returns {array of objects}
+ * @returns {rows}
  */
 app.get('/today', (req, res) => {
     console.log("today")
@@ -70,7 +70,7 @@ app.get('/today', (req, res) => {
 /**
  * filter records to tomorrow
  * TODO: need to handle time zones vs local time
- * @returns {array of objects}
+ * @returns {rows}
  */
 app.get('/tomorrow', (req, res) => {
     console.log("tomorrow")
@@ -85,7 +85,7 @@ app.get('/tomorrow', (req, res) => {
 
 /**
  * filter records >= today
- * @returns {array of objects}
+ * @returns {rows}
  */
 app.get('/future', (req, res) => {
     console.log("today")
@@ -100,7 +100,7 @@ app.get('/future', (req, res) => {
 
 /**
  * filter records >= today && incomplete
- * @returns {array of objects}
+ * @returns {rows}
  */
 app.get('/overdue', (req, res) => {
     console.log("overdue")
@@ -115,7 +115,7 @@ app.get('/overdue', (req, res) => {
 
 /**
  * filter records that are marked complete
- * @returns {array of objects}
+ * @returns {rows}
  */
 app.get('/complete', (req, res) => {
     console.log("complete")
@@ -130,7 +130,7 @@ app.get('/complete', (req, res) => {
 
 /**
  * filter records that are not complete
- * @returns {array of objects}
+ * @returns {rows}
  */
 app.get('/incomplete', (req, res) => {
     console.log("complete")
@@ -145,6 +145,7 @@ app.get('/incomplete', (req, res) => {
 
 /**
  * update records by id
+ * @returns {row}
  */
 app.get('/detail', (req, res) => {
     const id = url.parse(req.url, true).query.id
@@ -155,7 +156,7 @@ app.get('/detail', (req, res) => {
     const query = Todo.getDetailQuery(id)
     db.get(query, [id], function(err, rows){
         if (err) {
-            console.log("ERR", err)
+            return console.log("ERR", err)
         }
         res.json(rows);
     });
@@ -164,25 +165,23 @@ app.get('/detail', (req, res) => {
 
 /**
  * update records by id
+ * @returns {rows}
  */
 app.put('/todo', (req, res) => {
-    console.log("put body", req.body)
+    let data = Todo.getFieldList(req.body)
+    const query = Todo.getUpdateQuery()
+    console.log("PUT", req.body)
 
-    let data = [req.body.isComplete, req.body.title, req.body.body, req.body.deadline, req.body.id];
-    // let id = req.body.id;
-    console.log("data", req.body.isComplete, req.body.title, req.body.body, req.body.deadline, req.body.id)
-    const query = "UPDATE todos SET isComplete=?, title=?, body=?, deadline=? WHERE id= ?"
     Promise.resolve(db.run(query, data, (err, rows) => {
         if (err) {
             return console.error(err.message);
         }
         return rows;
     })).then((rows) => {
-        console.log(`Row(s) updated`, rows);
         const query = Todo.getAllQuery()
         db.all(query, [], function(err, rows){
             if (err) {
-                console.log("ERR", err)
+                return console.log("ERR", err)
             }
             res.json(rows);
         });
@@ -191,18 +190,46 @@ app.put('/todo', (req, res) => {
 
 /**
  * create record, no required fields at this point.
- * @returns {id}
+ * @returns {rows}
  */
 app.post('/todo', (req, res) => {
     console.log("POST todo")
-    console.log("2 req", req.method, req.body)
-   // const data = req;
-    //data.id = null;
-    // db.run(`INSERT INTO todos VALUES (?, ?, ?, ?, ?)`, [data], (err) => {
-    //     if (err) {
-    //     return console.log(err.message);
-    //     }
-    //     console.log(`A row has been inserted with rowid ${this.lastID}`);
-    // });
+    const stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
+    stmt.run(null, `${req.body.isComplete}`, `${req.body.title}`, `${req.body.body}`, `${req.body.deadline}`)
+    Promise.resolve(stmt.finalize()
+    ).then((changes) => {
+        console.log("getAll", changes)
+        const query = Todo.getAllQuery()
+        db.all(query, [], function(err, rows){
+            if (err) {
+                return console.log("ERR", err)
+            }
+            res.json(rows);
+        });
+    });
+})
+
+app.del('/todo', (req, res) => {
+    console.log("delete")
+    const id = url.parse(req.url, true).query.id
+    console.log("delete",id)
+    if (!id) {
+        return console.log("no id sent", url.parse(req.url, true))
+    }
+    const query = Todo.getDeleteQuery()
+    Promise.resolve(db.run(query, [id], (err, rows) => {
+        if (err) {
+            return console.error(err.message);
+        }
+        return rows;
+    })).then((rows) => {
+        const query = Todo.getAllQuery()
+        db.all(query, [], function(err, rows){
+            if (err) {
+                return console.log("ERR", err)
+            }
+            res.json(rows);
+        });
+    });
 })
 

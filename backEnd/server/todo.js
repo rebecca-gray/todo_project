@@ -7,11 +7,11 @@ class Todo {
     static createTable (db) {
         return db.serialize(() => {
             db.run("CREATE TABLE if not exists todos (id INTEGER PRIMARY KEY, isComplete TEXT, title TEXT, body TEXT, deadline TEXT)");
-          //   var stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
-          //    stmt.run(null, 'true', 'Concert', 'La Traviata with Seamus', '2018-08-18')
-          //    stmt.run(null, 'false', 'Birthday Party', 'Aidan turns 9', '2018-08-23')
-          //    stmt.run(null, 'false', 'Extreme', 'Swim The English Channel', '2018-08-01')
-          //    stmt.finalize();
+            // const stmt = db.prepare("INSERT INTO todos VALUES (?, ?, ?, ?, ?)");
+            //  stmt.run(null, 'true', 'Concert', 'La Traviata with Seamus', '2018-08-18')
+            //  stmt.run(null, 'false', 'Birthday Party', 'Aidan turns 9', '2018-08-23')
+            //  stmt.run(null, 'false', 'Extreme', 'Swim The English Channel', '2018-08-01')
+            //  stmt.finalize();
 
             db.each("SELECT * FROM todos", function(err, row) {
                 console.log(row.id + ": " + row.body);
@@ -91,6 +91,27 @@ class Todo {
     static getDetailQuery (id) {
         return `SELECT * FROM todos WHERE id = ?`
     }
+
+    static getFieldList (req) {
+        return [req.isComplete, req.title, req.body, req.deadline, req.id];
+    }
+
+    static getUpdateQuery () {
+        return "UPDATE todos SET isComplete=?, title=?, body=?, deadline=? WHERE id= ?"
+    }
+
+    static getDeleteQuery () {
+        return `DELETE FROM todos WHERE id=?`
+    }
+
+           // const data = req;
+    //data.id = null;
+    // db.run(`INSERT INTO todos VALUES (?, ?, ?, ?, ?)`, [data], (err) => {
+    //     if (err) {
+    //     return console.log(err.message);
+    //     }
+    //     console.log(`A row has been inserted with rowid ${this.lastID}`);
+    // });
 };
 
 module.exports = Todo;

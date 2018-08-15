@@ -30,7 +30,6 @@ class TodoList extends React.Component {
       selectedItem: null,
       modalOpen: {},
     };
-    // initialize with modals closed
     props.items.forEach((item) => {
       this.state.modalOpen[item.id] = false;
     })
@@ -39,18 +38,6 @@ class TodoList extends React.Component {
 
   handleClick() {
     this.setState(state => ({ open: !state.open }));
-  };
-
-  handleChange (id) {
-      console.log("change", id)
-    // this.setState({
-    //   expanded: this.state.expanded ? this.panel : false,
-    // });
-    // const index = this.props.items.findIndex(x => x.id === this.key)
-    // console.log("STUFF", {
-    //     id: this.panel.key,
-    //     title: document.querySelector(`.{title_${this.panel.key}}`)
-    // })
   };
 
   handleDelete (item) {
@@ -73,11 +60,8 @@ class TodoList extends React.Component {
     if (this.state.selectedItem) {
       return this.hideDetails(item)
     }
-    console.log("displaydetails", item.id)
     this.props.getDetails("detail", "", item.id)
     .then((data) => {
-      console.log("data from fetch", data)
-      // item = data;
       const modalOpen = this.state.modalOpen;
       modalOpen[item.id] = true;
       this.setState({
@@ -88,16 +72,13 @@ class TodoList extends React.Component {
   }
 
   hideDetails(item) {
-    console.log("hideDetails", item)
     const modalOpen = this.state.modalOpen;
     modalOpen[item.id] = false;
     this.setState({
       selectedItem: null,
       modalOpen
     });
-    // if (diff) {
-      this.props.handleUpdate(item)
-    // }
+    this.props.handleUpdate(item)
   }
 
   render() {
@@ -135,7 +116,7 @@ class TodoList extends React.Component {
                 <DetailView
                   open={this.state.modalOpen[item.id]}
                   markComplete={this.markComplete}
-                  onClose={this.hideDetails.bind(this, item)}
+                  onClose={this.hideDetails}
                   item={selectedItem}
                 />
               )}

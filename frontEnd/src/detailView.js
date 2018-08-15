@@ -3,8 +3,6 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import Checkbox from '@material-ui/core/Checkbox';
 import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 
@@ -25,36 +23,26 @@ class DetailView extends React.Component {
   handleClickOpen(scroll) {
     this.setState({ open: true, scroll });
   };
+  handleCancel(item) {
+    this.setState({ open: false });
+     this.props.onClose(item)
+  };
 
   handleClose(item) {
     this.setState({ open: false });
-    let diff = false;
-    if (item.body === null || item.body === this.state.itemBody) {
-        item.body = this.state.itemBody;
-        diff = true;
-    }
-    if (item.title === null || item.title !== this.state.itemTitle) {
-        item.title = this.state.itemTitle;
-        diff = true;
-    }
-    if (item.deadline === null || item.deadline !== this.state.itemDeadline) {
-        item.deadline = this.state.itemDeadline;
-        diff = true;
-    }
-    if (item.isComplete === null || item.isComplete !== this.state.itemIsComplete) {
-        item.isComplete = this.state.itemIsComplete;
-        diff = true;
-    }
-    console.log("handleClose", item)
-    this.props.onClose(item, this.state.itemBody)
+    item.body = this.state.itemBody;
+    item.title = this.state.itemTitle;
+    item.deadline = this.state.itemDeadline;
+    item.isComplete = this.state.itemIsComplete;
+    this.props.onClose(item)
   };
 
   render() {
     return (
       <div>
         <Dialog
-          open={this.props.open}
-          onClose={this.handleClose.bind(this, this.props.item)}
+          open={this.props.open || false}
+          onClose={this.handleClose}
           scroll={this.state.scroll}
           aria-labelledby="form-dialog-title"
         >
@@ -80,7 +68,6 @@ class DetailView extends React.Component {
              <TextField
               margin="normal"
               id="name"
-             // label="Deadline"
               type="date"
               fullWidth
               value={this.state.itemDeadline}
@@ -99,7 +86,7 @@ class DetailView extends React.Component {
               onChange={(e) => this.setState({ itemBody: e.target.value })}
             />
           <DialogActions>
-            <Button onClick={this.handleClose.bind(this, this.props.item)} color="primary">
+            <Button onClick={this.handleCancel.bind(this, this.props.item)} color="primary">
               Cancel
             </Button>
             <Button onClick={this.handleClose.bind(this, this.props.item)} color="primary">

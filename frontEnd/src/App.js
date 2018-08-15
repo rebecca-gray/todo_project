@@ -95,8 +95,7 @@ class TodoApp extends React.Component {
     }
     return this.fetch(`${url}?id=${id}`, body, "DELETE")
     .then((res) => {
-      console.log("res", res)
-      return id
+      this.setState({ todos: res })
     },
     (error) => {
         return "error"
@@ -104,15 +103,14 @@ class TodoApp extends React.Component {
   }
 
   updateTask(id, url = "todo", body = "") {
-    console.log("updateTask", body)
     if (!id || !body) {
       console.log("ERR no id provided to getDetails")
       return;
     }
     return this.fetch(`${url}?id=${id}`, body, "PUT")
     .then((res) => {
-      console.log("res", res)
-      return id
+      console.log("update res", res)
+      this.setState({ todos: res })
     },
     (error) => {
         return "error"
@@ -126,8 +124,8 @@ class TodoApp extends React.Component {
     }
     return this.fetch(`${url}`, body, "POST")
     .then((res) => {
-      console.log("res", res)
-      return id
+      console.log("create res", res)
+      this.setState({ todos: res })
     },
     (error) => {
         return "error"

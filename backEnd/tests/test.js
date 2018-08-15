@@ -1,14 +1,3 @@
-const sinon = require("sinon");
-const chai = require("chai");
-const { expect } = chai;
-// const server = require("../src/server");
-const request = require("request")
-const moment = require("moment")
-// const sinonChai = require("sinon-chai");
-
-// chai.use(sinonChai);
-
-const base = 'http://localhost:5000';
 const today = moment().format('YYYY-MM-DD');
 const tomorrow = moment().add(1, "d").format('YYYY-MM-DD');
 const yesterday = moment().subtract(1, "d").format('YYYY-MM-DD');
@@ -25,5 +14,3 @@ const FULL_DATA_SET = [
     {id: 3, isComplete: "false", title: "Birthday Party", deadline: "2018-08-23", body: "baz"}
 ]
 
-describe("server", () => {
-});

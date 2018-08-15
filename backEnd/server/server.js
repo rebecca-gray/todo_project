@@ -2,7 +2,7 @@
 const restify = require('restify');
 const corsMiddleware = require('restify-cors-middleware')
 const port = process.env.PORT || 5000;
-const crud = require("./crud")
+const Crud = require("./crud")
 const app = restify.createServer({
     name: "todoApp",
     version: "1.0.0"
@@ -25,68 +25,69 @@ app.listen(port, () => {
 app.pre(cors.preflight)
 app.use(cors.actual)
 
+const crud = new Crud()
+
  /**
   * return all records in the db, short format
   * @returns {rows}
   */
-app.get('/all', crud.fetchAll)
-
+ app.get('/all', (req,res,next) => crud.fetchAll(req, res, next))
 /**
  * filter records to this day
  * TODO: need to handle time zones vs local time
  * @returns {rows}
  */
-app.get('/today', crud.fetchToday)
+app.get('/today', (req,res,next) => crud.fetchToday(req, res, next))
 
 /**
  * filter records to tomorrow
  * TODO: need to handle time zones vs local time
  * @returns {rows}
  */
-app.get('/tomorrow', crud.fetchTomorrow)
+app.get('/tomorrow', (req,res,next) => crud.fetchTomorrow(req, res, next))
 
 /**
  * filter records >= today
  * @returns {rows}
  */
-app.get('/future', crud.fetchFuture)
+app.get('/future', (req,res,next) => crud.fetchFuture(req, res, next))
 
 /**
  * filter records >= today && incomplete
  * @returns {rows}
  */
-app.get('/overdue', crud.fetchOverdue)
+app.get('/overdue', (req,res,next) => crud.fetchOverdue(req, res, next))
 
 /**
  * filter records that are marked complete
  * @returns {rows}
  */
-app.get('/complete', crud.fetchComplete)
+app.get('/complete', (req,res,next) => crud.fetchComplete(req, res, next))
 
 /**
  * filter records that are not complete
  * @returns {rows}
  */
-app.get('/incomplete', crud.fetchIncomplete)
+app.get('/incomplete', (req,res,next) => crud.fetchIncomplete(req, res, next))
 
 /**
  * fetch record by id
  * @returns {row}
  */
-app.get('/detail', crud.fetchDetail)
+app.get('/detail', (req,res,next) => crud.fetchDetail(req, res, next))
 
 
 /**
  * update record by id
  * @returns {rows}
  */
-app.put('/todo', crud.putTodo)
+app.put('/todo', (req,res,next) => crud.putTodo(req, res, next))
 
 /**
  * create record, no required fields at this point.
  * @returns {rows}
  */
-app.post('/todo', crud.postTodo)
+app.post('/todo', (req,res,next) => crud.postTodo(req, res, next))
 
 /**
  * TODO: since sqlite3 perfers the method del for delete but that does not pass cors
@@ -94,5 +95,5 @@ app.post('/todo', crud.postTodo)
  *
  * @returns {rows}
  */
-app.put('/delete', crud.delete)
+app.put('/delete', (req,res,next) => crud.delete(req, res, next))
 

@@ -18,6 +18,7 @@ class DetailView extends React.Component {
         itemIsComplete: this.props.item.isComplete
       }
       this.handleCLose = this.handleClose.bind(this)
+      this.markComplete = this.markComplete.bind(this)
   };
 
   handleClickOpen(scroll) {
@@ -26,6 +27,11 @@ class DetailView extends React.Component {
   handleCancel(item) {
     this.setState({ open: false });
      this.props.onClose(item)
+  };
+
+  markComplete(item) {
+    const toggleChecked = this.state.itemIsComplete === "true" ? "false" : "true"
+    this.setState({itemIsComplete: toggleChecked})
   };
 
   handleClose(item) {
@@ -48,11 +54,11 @@ class DetailView extends React.Component {
         >
           <DialogTitle id="form-dialog-title">Edit Task</DialogTitle>
           <Checkbox
-                checked={this.props.item.isComplete === "true"}
+                checked={this.state.itemIsComplete === "true"}
                 tabIndex={-1}
                 className={`isComplete_${this.props.item.id}`}
                 disableRipple
-              //  onClick={this.markComplete.bind(this, item.id)}
+                onClick={this.markComplete}
            />
            <form className="container" noValidate autoComplete="off">
 

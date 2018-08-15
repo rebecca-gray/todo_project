@@ -45,17 +45,6 @@ class TodoList extends React.Component {
     this.props.handleDelete(item)
   }
 
-  markComplete(id) {
-    console.log("markComplete")
-    // this.props.items.map(item => {
-    //     if (item.id === id) {
-    //       const isComplete = item.isComplete === "false" ? "true" : "false"
-    //       item.isComplete = isComplete;
-    //       this.props.markComplete(item, isComplete)
-    //     }
-    // })
-  };
-
   displayDetails(item) {
     if (this.state.selectedItem) {
       return this.hideDetails(item)
@@ -131,7 +120,7 @@ class TodoList extends React.Component {
                 tabIndex={-1}
                 className={`isComplete_${item.id}`}
                 disableRipple
-                onClick={this.markComplete.bind(this, item.id)}
+                cursor={`disabled`}
               />
             <ListItemText primary={item.title} />
               {moment(item.deadline, ["MM-DD-YYYY", "YYYY-MM-DD"]).isSame(today, "day") &&
